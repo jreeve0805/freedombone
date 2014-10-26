@@ -1278,7 +1278,7 @@ function install_editor {
   if grep -Fxq "install_editor" $COMPLETION_FILE; then
       return
   fi
-  update-alternatives --set editor /usr/bin/emacs24
+  # update-alternatives --set editor /usr/bin/emacs24
 
   # A minimal emacs configuration
   echo -n "(add-to-list 'load-path " > /home/$MY_USERNAME/.emacs
