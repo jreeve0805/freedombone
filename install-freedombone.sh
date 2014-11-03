@@ -752,23 +752,17 @@ function backup_to_friends_servers {
       BACKUP_TO_FRIENDS_PASSPHRASE=$(openssl rand -base64 32)
   fi
 
-  if ! grep -q "With a USB drive attached just type" /home/$MY_USERNAME/README; then
-      if [ ! -f /home/$MY_USERNAME/README ]; then
-          touch /home/$MY_USERNAME/README
-      fi
+  if ! grep -q "backups on friends servers" /home/$MY_USERNAME/README; then
       echo '' >> /home/$MY_USERNAME/README
       echo '' >> /home/$MY_USERNAME/README
       echo 'Backups' >> /home/$MY_USERNAME/README
       echo '=======' >> /home/$MY_USERNAME/README
-      echo 'With a USB drive attached just type "backup" or "restore" when logged in as root.' >> /home/$MY_USERNAME/README
-      echo 'You will be asked to enter your GPG key passphrase.' >> /home/$MY_USERNAME/README
-      echo '' >> /home/$MY_USERNAME/README
       echo "Passphrase for backups on friends servers: $BACKUP_TO_FRIENDS_PASSPHRASE" >> /home/$MY_USERNAME/README
       echo "To add friends servers create a file called $FRIENDS_SERVERS_LIST"
       echo 'and add entries like this:' >> /home/$MY_USERNAME/README
       echo '' >> /home/$MY_USERNAME/README
-      echo 'username1@domain1//home/username1 ssh_password1' >> /home/$MY_USERNAME/README
-      echo 'username2@domain2//home/username2 ssh_password2' >> /home/$MY_USERNAME/README
+      echo 'username1@domain1:2222//home/username1 ssh_password1' >> /home/$MY_USERNAME/README
+      echo 'username2@domain2:2222//home/username2 ssh_password2' >> /home/$MY_USERNAME/README
       echo '...' >> /home/$MY_USERNAME/README
       echo '' >> /home/$MY_USERNAME/README
       echo 'The system will try to backup to these remote locations once per day.' >> /home/$MY_USERNAME/README
@@ -910,17 +904,11 @@ function restore_from_friend {
       return
   fi
 
-  if ! grep -q "Restoring from Backups" /home/$MY_USERNAME/README; then
-      if [ ! -f /home/$MY_USERNAME/README ]; then
-          touch /home/$MY_USERNAME/README
-      fi
+  if ! grep -q "restore from a friend's server" /home/$MY_USERNAME/README; then
       echo '' >> /home/$MY_USERNAME/README
       echo '' >> /home/$MY_USERNAME/README
-      echo 'Restoring from Backups' >> /home/$MY_USERNAME/README
-      echo '======================' >> /home/$MY_USERNAME/README
-      echo 'To restore from USB backup plug in the USB drive then log in' >> /home/$MY_USERNAME/README
-      echo 'as root and just type "restore".' >> /home/$MY_USERNAME/README
-      echo '' >> /home/$MY_USERNAME/README
+      echo 'Restoring from backups to friends servers' >> /home/$MY_USERNAME/README
+      echo '=========================================' >> /home/$MY_USERNAME/README
       echo "To restore from a friend's server use the command:" >> /home/$MY_USERNAME/README
       echo '' >> /home/$MY_USERNAME/README
       echo "  $RESTORE_FROM_FRIEND_SCRIPT_NAME [server]" >> /home/$MY_USERNAME/README
@@ -2193,6 +2181,8 @@ function configure_imap {
   sed -i 's/#ssl_prefer_server_ciphers = no/ssl_prefer_server_ciphers = yes/g' /etc/dovecot/conf.d/10-ssl.conf
   echo "ssl_cipher_list = '$SSL_CIPHERS'" >> /etc/dovecot/conf.d/10-ssl.conf
 
+  sed -i 's/#process_limit = 1024/process_limit = 5/g' /etc/dovecot/conf.d/10-master.conf
+  sed -i 's/#default_client_limit = 1000/default_client_limit = 5/g' /etc/dovecot/conf.d/10-master.conf
 
   sed -i 's/#auth_verbose = no/auth_verbose = yes/g' /etc/dovecot/conf.d/10-logging.conf
 
@@ -2200,6 +2190,7 @@ function configure_imap {
   sed -i 's/#disable_plaintext_auth = yes/disable_plaintext_auth = no/g' /etc/dovecot/conf.d/10-auth.conf
   sed -i 's/auth_mechanisms = plain/auth_mechanisms = plain login/g' /etc/dovecot/conf.d/10-auth.conf
   sed -i 's|mail_location = mbox:~/mail:INBOX=/var/mail/%u|mail_location = maildir:~/Maildir:LAYOUT=fs|g' /etc/dovecot/conf.d/10-mail.conf
+  service dovecot restart
   echo 'configure_imap' >> $COMPLETION_FILE
 }
 
